@@ -1,6 +1,6 @@
 "use client";
-import { searchPlayerByString } from "@/lib/getTeams";
-import React, { useState, useEffect } from "react";
+import { searchPlayerByID, searchPlayerByString } from "@/lib/getData";
+import React, { useEffect, useRef, useState } from "react";
 import useSelectedPlayers from "@/hooks/useSelectedPlayers";
 import Loader from "./Loader";
 /* const fakeApi = () => console.log('Api is called') */
@@ -10,7 +10,14 @@ export default function SearchInput() {
   const [loadingPlayers, setIsLoadingPlayers] = useState(false);
   const [timer, setTimer] = useState(null);
   const [playersResult, setPlayerResult] = useState([]);
-  const { selectedPlayers, togglePlayer } = useSelectedPlayers();
+  const inputArea = useRef(null);
+
+  const {
+    selectedPlayers,
+    togglePlayer,
+    loadingPlayerData,
+    toggleIsLoadingPlayerData,
+  } = useSelectedPlayers();
   const inputChanged = (e) => {
     setInputValue(e.target.value);
 
@@ -27,23 +34,39 @@ export default function SearchInput() {
         }
       }, 500);
       setTimer(newTimer);
+    } else {
+      setPlayerResult([]);
     }
   };
 
-  const handlePlayerClick = (p) => {
-    togglePlayer(p);
+  const handlePlayerClick = async (p) => {
     setInputValue("");
     setPlayerResult([]);
+    toggleIsLoadingPlayerData();
+    const exdendedData = await searchPlayerByID(p.id);
+    toggleIsLoadingPlayerData();
+    togglePlayer({ ...p, stats: { ...exdendedData[0] } });
   };
-
+  const handleOutsideClick = (e) => {
+    if (inputArea.current && !inputArea.current.contains(e.target)) {
+      setPlayerResult([]);
+    }
+  };
+  useEffect(() => {
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  });
   return (
-    <div className="relative w-full ">
+    <div className="relative w-full " id="player-input">
       <input
         value={inputValue}
         type="text"
         onChange={inputChanged}
-        className="relative w-full p-4 border border-slate-400 rounded-3xl z-20 h-16 focus:outline-orange-500"
+        className={`${selectedPlayers.length >= 6 ? 'pointer-events-none opacity-50' : ''} relative w-full p-4 border border-slate-400 rounded-3xl z-20 h-16 focus:outline-orange-500`}
         placeholder="Star typing a player's name or surname"
+
       />
       {loadingPlayers && (
         <div className=" absolute w-full flex items-center justify-center pt-10 z-40">
@@ -51,7 +74,10 @@ export default function SearchInput() {
         </div>
       )}
       {playersResult && playersResult.length ? (
-        <div className="absolute top-0 w-full max-h-56 overflow-y-auto bg-neutral-800 dark:bg-slate-100 text-slate-100 dark:text-neutral-900 rounded-3xl pt-16 z-10">
+        <div
+          ref={inputArea}
+          className="absolute top-0 w-full max-h-56 overflow-y-auto bg-neutral-800 dark:bg-slate-100 text-slate-100 dark:text-neutral-900 rounded-3xl pt-16 z-10"
+        >
           {playersResult.map((p) => (
             <div
               key={p.id}
@@ -59,7 +85,7 @@ export default function SearchInput() {
                 selectedPlayers.some((e) => e.id === p.id)
                   ? "bg-orange-500 text-slate-100"
                   : ""
-              }`}
+              } ${loadingPlayerData ? "pointer-events-none" : null}`}
               onClick={() => handlePlayerClick(p)}
             >
               <div className="flex flex-row items-center">
@@ -91,7 +117,6 @@ export default function SearchInput() {
           ))}
         </div>
       ) : null}
-      {JSON.stringify(selectedPlayers)}
     </div>
   );
 }

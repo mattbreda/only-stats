@@ -10,6 +10,10 @@ function updateArray(array, object) {
 }
 const useSelectedPlayers = create((set) => ({
   selectedPlayers: [],
+  loadingPlayerData: false,
+  toggleIsLoadingPlayerData:()=> set((state) => ({
+    loadingPlayerData: !state.loadingPlayerData,
+  })),
   togglePlayer: (player) =>
     set((state) => ({
       selectedPlayers: [...updateArray(state.selectedPlayers, player)],

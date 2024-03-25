@@ -1,6 +1,6 @@
 "use client"
 
-const { getTeams } = require("@/lib/getTeams")
+const { getTeams } = require("@/lib/getData")
 
 const TestFetch = () => {
     const sendRequest = () => {
