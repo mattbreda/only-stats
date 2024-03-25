@@ -64,15 +64,16 @@ export default function SearchInput() {
         value={inputValue}
         type="text"
         onChange={inputChanged}
-        className={`${selectedPlayers.length >= 6 ? 'pointer-events-none opacity-50' : ''} relative w-full p-4 border border-slate-400 rounded-3xl z-20 h-16 focus:outline-orange-500`}
+        className={`${
+          selectedPlayers.length >= 6 ? "pointer-events-none opacity-50" : ""
+        } relative w-full p-4 border border-slate-400 rounded-3xl z-20 h-16 focus:outline-orange-500`}
         placeholder="Star typing a player's name or surname"
-
       />
-      {loadingPlayers && (
+      {loadingPlayers || loadingPlayerData ? (
         <div className=" absolute w-full flex items-center justify-center pt-10 z-40">
           <Loader />
         </div>
-      )}
+      ) : null}
       {playersResult && playersResult.length ? (
         <div
           ref={inputArea}
